@@ -80,7 +80,10 @@ class ForumScraper:
 
         # This site is protected under CloudFlare bot spam detection, a normal http request would not suffice
         scraper = cloudscraper.create_scraper(browser={'browser': 'firefox', 'platform': 'windows', 'mobile': False})
-        res = scraper.get(f'https://www.mentalhealthforum.net/forum/forums/coronavirus-covid-19-mental-health.394/')
+        # Partially prevents scraping detection
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.0; WOW64; rv:24.0) Gecko/20100101 Firefox/24.0'}
+        res = scraper.get(f'https://www.mentalhealthforum.net/forum/forums/coronavirus-covid-19-mental-health.394/',
+                          headers=headers)
 
         soup = bs4.BeautifulSoup(res.text, 'html.parser')
         pages = soup.find('ul', attrs={'class': 'pageNav-main'})
@@ -117,9 +120,12 @@ class ForumScraper:
             # This site is protected under CloudFlare bot spam detection, a normal http request would not suffice
             scraper = cloudscraper.create_scraper(
                 browser={'browser': 'firefox', 'platform': 'windows', 'mobile': False})
+            # Partially prevents scraping detection
+            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.0; WOW64; rv:24.0) Gecko/20100101 Firefox/24.0'}
             res = scraper.get(
                 f'https://www.mentalhealthforum.net/forum/forums/coronavirus-covid-19-mental-health.394/'
-                f'page-{page}')
+                f'page-{page}',
+                headers=headers)
 
             soup = bs4.BeautifulSoup(res.text, 'html.parser')
             threads = soup \
@@ -215,7 +221,7 @@ class ForumScraper:
         """
         Calls __scrap_threads if __threads is None, otherwise, it retrieves __threads immediately.
 
-        :param bool fast_fetch: Retrieves thread's details from an only snapshot instantly
+        :param bool fast_fetch: Retrieves thread's details from a saved snapshot instantly
         :return: A thread dataframe
         """
 
@@ -259,7 +265,9 @@ class ForumScraper:
 
         # This site is protected under CloudFlare bot spam detection, a normal http request would not suffice
         scraper = cloudscraper.create_scraper(browser={'browser': 'firefox', 'platform': 'windows', 'mobile': False})
-        res = scraper.get(f'https://www.mentalhealthforum.net/forum/threads/{thread_id}')
+        # Partially prevents scraping detection
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.0; WOW64; rv:24.0) Gecko/20100101 Firefox/24.0'}
+        res = scraper.get(f'https://www.mentalhealthforum.net/forum/threads/{thread_id}', headers=headers)
 
         soup = bs4.BeautifulSoup(res.text, 'html.parser')
         pages = soup.find('ul', attrs={'class': 'pageNav-main'})
@@ -271,11 +279,12 @@ class ForumScraper:
         return last_page
 
     @staticmethod
-    def __scrap_threads_details(fast_fetch=False):
+    def __scrap_threads_details(fast_fetch=False, fast_fetch_threads=False):
         """
         Scraps data containing a list of thread's details.
 
         :param bool fast_fetch: Retrieves forums from a saved snapshot instantly
+        :param fast_fetch_threads: Retrieves threads from a saved snapshot instantly
         :return: A thread's details dataframe
         """
 
@@ -288,9 +297,9 @@ class ForumScraper:
 
         processed = 0
 
-        threads_ids = ForumScraper.scrap_threads(fast_fetch=fast_fetch).index
+        threads_ids = ForumScraper.scrap_threads(fast_fetch=fast_fetch_threads).index
 
-        for thread_id in ForumScraper.scrap_threads(fast_fetch=fast_fetch).index:
+        for thread_id in threads_ids:
             processed += 1
             pagination = int(ForumScraper.__get_threads_details_pagination(thread_id=thread_id))
             for page in np.arange(1, pagination + 1):
@@ -340,7 +349,7 @@ class ForumScraper:
                     if user_extras:
                         user_extras = user_extras.find_all('dd')
                         user_join_date = datetime.datetime.strptime(user_extras[0].text, '%b %d, %Y')
-                        user_messages = user_extras[1].text
+                        user_messages = user_extras[1].text.replace(',', '')
                         if len(user_extras) > 2:
                             user_location = user_extras[2].find('a').text
 
@@ -387,7 +396,7 @@ class ForumScraper:
 
         threads_details_df.set_index('thread_id', inplace=True)
 
-        cols = ['post_reaction_like', 'post_reaction_thanks', 'post_reaction_hug']
+        cols = ['user_messages', 'post_reaction_like', 'post_reaction_thanks', 'post_reaction_hug']
         threads_details_df[cols] = threads_details_df[cols].apply(pd.to_numeric)
 
         threads_details_df['user_join_date'] = pd.to_datetime(threads_details_df['user_join_date'], utc=True)
@@ -397,18 +406,20 @@ class ForumScraper:
         return threads_details_df
 
     @staticmethod
-    def scrap_threads_details(fast_fetch=False):
+    def scrap_threads_details(fast_fetch=False, fast_fetch_threads=False):
         """
         Calls __scrap_threads_details if __threads_details is None, otherwise,
         it retrieves __threads_details immediately.
 
-        :param bool fast_fetch: Retrieves thread's details from an only snapshot instantly
+        :param bool fast_fetch: Retrieves thread's details from a saved snapshot instantly
+        :param fast_fetch_threads: Retrieves threads from a saved snapshot instantly
         :return: A thread's details dataframe
         """
 
         if ForumScraper.__threads_details is None:
             print('Fetching threads_details, this is a one time process...')
-            ForumScraper.__threads_details = ForumScraper.__scrap_threads_details(fast_fetch=fast_fetch)
+            ForumScraper.__threads_details = ForumScraper.__scrap_threads_details(fast_fetch=fast_fetch,
+                                                                                  fast_fetch_threads=fast_fetch_threads)
             print('Received threads_details\n')
 
         return ForumScraper.__threads_details.copy()
