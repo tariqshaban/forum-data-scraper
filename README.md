@@ -25,6 +25,9 @@ install matplotlib
 Install scipy
 `pip install scipy`
 
+Install calplot
+`pip install calplot`
+
 Install cloudscraper
 `pip install cloudscraper`
 

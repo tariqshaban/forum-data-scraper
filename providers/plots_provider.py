@@ -2,6 +2,7 @@ import datetime
 
 import pandas as pd
 import pytz
+from calplot import calplot
 
 from providers.forum_scraper import ForumScraper
 import matplotlib.pyplot as plt
@@ -19,6 +20,8 @@ class PlotsProvider:
     -------
         plot_threads_posting(fast_fetch=True):
             Shows the number of thread's creation trend.
+        plot_views_with_replies(fast_fetch=True):
+            Shows the number of views trend alongside the replies.
         plot_monthly_views_with_replies(fast_fetch=True):
             Shows the number of views trend alongside the replies.
         plot_daily_views_with_replies(fast_fetch=True):
@@ -53,19 +56,31 @@ class PlotsProvider:
         """
 
         df = ForumScraper.scrap_threads(fast_fetch=fast_fetch)
-
-        fig, ax = plt.subplots(figsize=(10, 9))
-
-        df['date_posted'] = df['date_posted'].map(lambda x: x.strftime('%Y-%m'))
-
         df = df.reset_index().groupby('date_posted')['thread_id'].count()
 
-        df.plot(kind='bar', ax=ax)
+        calplot(df, colorbar=True, tight_layout=False, cmap='Blues',
+                suptitle='Amount of Posts Over Time')
 
-        ax.set_xlabel('Months')
-        ax.set_ylabel('Posts')
+        plt.show()
 
-        fig.suptitle('Amount of Posts Over Time', fontsize=20)
+    @staticmethod
+    def plot_views_with_replies(fast_fetch=True):
+        """
+        Shows the number of views trend alongside the replies.
+
+        :param bool fast_fetch: Retrieves forums from a saved snapshot instantly
+        """
+
+        df = ForumScraper.scrap_threads(fast_fetch=fast_fetch)
+
+        df_views = df.groupby('date_posted')['views'].sum()
+        df_replies = df.groupby('date_posted')['replies'].sum()
+
+        calplot(df_views, colorbar=True, tight_layout=False, cmap='Blues',
+                suptitle='Amount of Views Over Time')
+
+        calplot(df_replies, colorbar=True, tight_layout=False, cmap='Blues',
+                suptitle='Amount of Replies Over Time')
 
         plt.show()
 
@@ -218,7 +233,7 @@ class PlotsProvider:
         df['age'] = df['date_posted'] \
             .apply(lambda x: (datetime.datetime.now(tz=pytz.timezone('utc')) - x).days)
 
-        df['title'] = df['title']\
+        df['title'] = df['title'] \
             .apply(lambda x: (x[:25] + '..') if len(x) > 25 else x)
 
         df = df.sort_values(by=['age'], ascending=False)[['title', 'age']].head(10)
