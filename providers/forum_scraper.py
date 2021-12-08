@@ -5,7 +5,6 @@ import pandas as pd
 import numpy as np
 import bs4
 import re
-from helpers.date_time_handler import DateTimeHandler
 from helpers.progress_handler import ProgressHandler
 
 
@@ -21,7 +20,7 @@ class ForumScraper:
     Methods
     -------
         __get_cached_threads():
-            Retrieves the threads snapshot.
+            Retrieves the thread's snapshot.
         cache_threads():
             Collects a snapshot of the threads for faster fetch in the future.
         __get_threads_pagination():
@@ -50,10 +49,10 @@ class ForumScraper:
     @staticmethod
     def __get_cached_threads():
         """
-        Retrieves the threads snapshot.
+        Retrieves the thread's snapshot.
         """
 
-        threads_df = pd.read_csv('cached_threads.csv', index_col='thread_id')
+        threads_df = pd.read_csv('cached_threads.csv', index_col='thread_id', skiprows=1)
 
         threads_df['last_replied_date'] = pd.to_datetime(threads_df['last_replied_date'], utc=True)
         threads_df['date_posted'] = pd.to_datetime(threads_df['date_posted'], utc=True)
@@ -67,8 +66,12 @@ class ForumScraper:
         """
         threads_df = ForumScraper.scrap_threads()
 
+        f = open('cached_threads.csv', "w+")
+        f.write(f'# Timestamp: {datetime.datetime.utcnow()}\n')
+        f.close()
+
         # noinspection PyTypeChecker
-        threads_df.to_csv('cached_threads.csv')
+        threads_df.to_csv('cached_threads.csv', mode='a')
 
     @staticmethod
     def __get_threads_pagination():
@@ -162,10 +165,10 @@ class ForumScraper:
                     if last_replier_image_container is not None:
                         last_replier_image = last_replier_image_container.find('img')['src']
 
-                    last_replied_date = DateTimeHandler.datetime_from_utc_to_local(
-                        datetime.datetime.strptime(thread.find_all('time')[-1]['datetime'], '%Y-%m-%dT%H:%M:%S%z'))
-                    date_posted = DateTimeHandler.datetime_from_utc_to_local(
-                        datetime.datetime.strptime(thread.find_all('time')[0]['datetime'], '%Y-%m-%dT%H:%M:%S%z'))
+                    last_replied_date = datetime.datetime.strptime(thread.find_all('time')[-1]['datetime'],
+                                                                   '%Y-%m-%dT%H:%M:%S%z')
+                    date_posted = datetime.datetime.strptime(thread.find_all('time')[0]['datetime'],
+                                                             '%Y-%m-%dT%H:%M:%S%z')
                     title = thread.find('div', {'class': 'structItem-title'}).find('a').text
                     is_locked = thread.find('i', {'class': 'structItem-status structItem-status--locked'}) is not None
                     is_sticky = thread.find('i', {'class': 'structItem-status structItem-status--sticky'}) is not None
@@ -238,7 +241,7 @@ class ForumScraper:
         Retrieves the thread's details snapshot.
         """
 
-        threads_details_df = pd.read_csv('cached_threads_details.csv', index_col='thread_id')
+        threads_details_df = pd.read_csv('cached_threads_details.csv', index_col='thread_id', skiprows=1)
 
         threads_details_df['user_join_date'] = pd.to_datetime(threads_details_df['user_join_date'], utc=True)
         threads_details_df['user_post_date'] = pd.to_datetime(threads_details_df['user_post_date'], utc=True)
@@ -252,8 +255,12 @@ class ForumScraper:
         """
         threads_details_df = ForumScraper.scrap_threads_details()
 
+        f = open('cached_threads_details.csv', "w+")
+        f.write(f'# Timestamp: {datetime.datetime.utcnow()}\n')
+        f.close()
+
         # noinspection PyTypeChecker
-        threads_details_df.to_csv('cached_threads_details.csv')
+        threads_details_df.to_csv('cached_threads_details.csv', mode='a')
 
     @staticmethod
     def __get_threads_details_pagination(thread_id):

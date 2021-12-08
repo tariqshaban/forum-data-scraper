@@ -1,4 +1,7 @@
+import datetime
+
 import pandas as pd
+import pytz
 
 from providers.forum_scraper import ForumScraper
 import matplotlib.pyplot as plt
@@ -197,6 +200,37 @@ class PlotsProvider:
                 autopct='%.3f', pctdistance=1.1, labeldistance=1.3, startangle=45)
 
         fig.suptitle('Locked/Sticky Percentage', fontsize=20)
+
+        plt.show()
+
+    @staticmethod
+    def plot_top_15_oldest_threads(fast_fetch=True):
+        """
+        Shows the ranking of threads by date in descending order.
+
+        :param bool fast_fetch: Retrieves forums from a saved snapshot instantly
+        """
+
+        df = ForumScraper.scrap_threads(fast_fetch=fast_fetch)
+
+        fig, ax = plt.subplots(figsize=(10, 9))
+
+        df['age'] = df['date_posted'] \
+            .apply(lambda x: (datetime.datetime.now(tz=pytz.timezone('utc')) - x).days)
+
+        df['title'] = df['title']\
+            .apply(lambda x: (x[:25] + '..') if len(x) > 25 else x)
+
+        df = df.sort_values(by=['age'], ascending=False)[['title', 'age']].head(10)
+
+        df.plot(kind='bar', x='title', ax=ax)
+
+        ax.set_xlabel('Topic')
+        ax.set_ylabel('Age (in years)')
+
+        plt.xticks(rotation=20)
+
+        fig.suptitle('Top 15 Threads in Term of Age', fontsize=20)
 
         plt.show()
 

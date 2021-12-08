@@ -13,10 +13,10 @@ print('--------------------------------------------------')
 # df = ForumScraper.scrap_threads(fast_fetch=True)
 #
 # print(df)
-
-# ForumScraper.scrap_threads(fast_fetch=True)
+# df = ForumScraper.scrap_threads()
+# ForumScraper.cache_threads()
 # ForumScraper.cache_threads_details()
 # print(ForumScraper.scrap_threads_details(fast_fetch=True))
-PlotsProvider.plot_user_top_10_locations()
+# PlotsProvider.plot_top_15_oldest_threads()
 print('--------------------------------------------------')
 print('Done.')

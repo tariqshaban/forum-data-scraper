@@ -1,6 +1,5 @@
 Data Scraping on Forums Website
 ==============================
-
 This is a submission of **assignment 2** for the **CIS711** course.
 
 It contains the code necessary to scrape data from a selected forum website.
@@ -39,7 +38,6 @@ No further configuration is required.
 
 Project Structure
 ------------
-
     ├── README.md                 <- The top-level README for developers using this project.
     │
     ├── helpers
@@ -52,9 +50,9 @@ Project Structure
     │
     └── main                      <- Acts as a sandbox for methods invocation
 
+
 Report / Findings
 ------------
-
 ### What tools have been used to scrape data off the web?
 
 Beautiful Soup has been used for scraping; it contains abstract out-of-the-box methods that help extract information
@@ -68,8 +66,8 @@ from the HTML file.
 
 There were no modifications committed for this scraping tool since it already satisfies the required objectives.
 
-We used cloudscraper instead of the well-known requests since the website is protected under CloudFlare bot spam
-detection, a normal http request would not suffice (returns forbidden 403 status code)
+We used cloudscraper instead of the well-known requests since the website is protected under Cloudflare bot spam
+detection, a normal HTTP request would not suffice (returns forbidden 403 status code)
 
 ### What were the target websites?
 
