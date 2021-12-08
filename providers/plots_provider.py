@@ -22,17 +22,17 @@ class PlotsProvider:
             Shows the number of thread's creation trend.
         plot_views_with_replies(fast_fetch=True):
             Shows the number of views trend alongside the replies.
-        plot_monthly_views_with_replies(fast_fetch=True):
-            Shows the number of views trend alongside the replies.
-        plot_daily_views_with_replies(fast_fetch=True):
-            Shows the number of views trend alongside the replies for each day in the week.
         plot_view_with_replies_relation(fast_fetch=True):
             Shows the relation between views and replies.
         plot_top_15_thread_creators(fast_fetch=True):
             Shows the ranking of user's number of threads posted.
+        plot_top_15_oldest_threads(fast_fetch=True):
+            Shows the ranking of threads by date in descending order.
         plot_locked_sticky_threads(fast_fetch=True):
             Shows the percentage of locked/sticky threads.
 
+        plot_replies(fast_fetch=True, fast_fetch_threads=True):
+            Shows the number of replies trend.
         plot_top_15_repliers(fast_fetch=True, fast_fetch_threads=True):
             Shows the ranking of user's number of replies posted.
         plot_top_15_messages(fast_fetch=True, fast_fetch_threads=True):
@@ -85,64 +85,6 @@ class PlotsProvider:
         plt.show()
 
     @staticmethod
-    def plot_monthly_views_with_replies(fast_fetch=True):
-        """
-        Shows the number of views trend alongside the replies.
-
-        :param bool fast_fetch: Retrieves forums from a saved snapshot instantly
-        """
-
-        df = ForumScraper.scrap_threads(fast_fetch=fast_fetch)
-
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 9))
-
-        df['date_posted'] = df['date_posted'].map(lambda x: x.strftime('%Y-%m'))
-
-        df_views = df.groupby('date_posted')['views'].sum()
-        df_replies = df.groupby('date_posted')['replies'].sum()
-
-        df_views.plot(kind='bar', ax=ax1)
-        df_replies.plot(kind='bar', ax=ax2)
-
-        ax1.set_xlabel('Months')
-        ax2.set_xlabel('Months')
-        ax1.set_ylabel('Views')
-        ax2.set_ylabel('Comments')
-
-        fig.suptitle('Amount of Views & Replies Over Time', fontsize=20)
-
-        plt.show()
-
-    @staticmethod
-    def plot_daily_views_with_replies(fast_fetch=True):
-        """
-        Shows the number of views trend alongside the replies for each day in the week.
-
-        :param bool fast_fetch: Retrieves forums from a saved snapshot instantly
-        """
-
-        df = ForumScraper.scrap_threads(fast_fetch=fast_fetch)
-
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 9))
-
-        days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-
-        df_views = df.groupby(df['date_posted'].dt.strftime("%a"))['views'].sum().reindex(days)
-        df_replies = df.groupby(df['date_posted'].dt.strftime("%a"))['replies'].sum().reindex(days)
-
-        df_views.plot(kind='bar', ax=ax1)
-        df_replies.plot(kind='bar', ax=ax2)
-
-        ax1.set_xlabel('Day of Week')
-        ax2.set_xlabel('Day of Week')
-        ax1.set_ylabel('Views')
-        ax2.set_ylabel('Comments')
-
-        fig.suptitle('Amount of Views & Replies During The Days of Weeks', fontsize=20)
-
-        plt.show()
-
-    @staticmethod
     def plot_view_with_replies_relation(fast_fetch=True):
         """
         Shows the relation between views and replies.
@@ -189,6 +131,37 @@ class PlotsProvider:
         plt.show()
 
     @staticmethod
+    def plot_top_15_oldest_threads(fast_fetch=True):
+        """
+        Shows the ranking of threads by date in descending order.
+
+        :param bool fast_fetch: Retrieves forums from a saved snapshot instantly
+        """
+
+        df = ForumScraper.scrap_threads(fast_fetch=fast_fetch)
+
+        fig, ax = plt.subplots(figsize=(10, 9))
+
+        df['age'] = df['date_posted'] \
+            .apply(lambda x: (datetime.datetime.now(tz=pytz.timezone('utc')) - x).days)
+
+        df['title'] = df['title'] \
+            .apply(lambda x: (x[:25] + '..') if len(x) > 25 else x)
+
+        df = df.sort_values(by=['age'], ascending=False)[['title', 'age']].head(10)
+
+        df.plot(kind='bar', x='title', ax=ax)
+
+        ax.set_xlabel('Topic')
+        ax.set_ylabel('Age (in days)')
+
+        plt.xticks(rotation=20)
+
+        fig.suptitle('Top 15 Threads in Term of Days', fontsize=20)
+
+        plt.show()
+
+    @staticmethod
     def plot_locked_sticky_threads(fast_fetch=True):
         """
         Shows the percentage of locked/sticky threads.
@@ -219,33 +192,20 @@ class PlotsProvider:
         plt.show()
 
     @staticmethod
-    def plot_top_15_oldest_threads(fast_fetch=True):
+    def plot_replies(fast_fetch=True, fast_fetch_threads=True):
         """
-        Shows the ranking of threads by date in descending order.
+        Shows the number of replies trend.
 
         :param bool fast_fetch: Retrieves forums from a saved snapshot instantly
+        :param fast_fetch_threads: Retrieves threads from a saved snapshot instantly
         """
 
-        df = ForumScraper.scrap_threads(fast_fetch=fast_fetch)
+        df = ForumScraper.scrap_threads_details(fast_fetch=fast_fetch, fast_fetch_threads=fast_fetch_threads)
 
-        fig, ax = plt.subplots(figsize=(10, 9))
+        df_replies = df.groupby('user_post_date')['user_id'].count()
 
-        df['age'] = df['date_posted'] \
-            .apply(lambda x: (datetime.datetime.now(tz=pytz.timezone('utc')) - x).days)
-
-        df['title'] = df['title'] \
-            .apply(lambda x: (x[:25] + '..') if len(x) > 25 else x)
-
-        df = df.sort_values(by=['age'], ascending=False)[['title', 'age']].head(10)
-
-        df.plot(kind='bar', x='title', ax=ax)
-
-        ax.set_xlabel('Topic')
-        ax.set_ylabel('Age (in years)')
-
-        plt.xticks(rotation=20)
-
-        fig.suptitle('Top 15 Threads in Term of Age', fontsize=20)
+        calplot(df_replies, colorbar=True, tight_layout=False, cmap='Blues',
+                suptitle='Amount of Replies Over Time')
 
         plt.show()
 
