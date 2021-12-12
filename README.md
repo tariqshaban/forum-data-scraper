@@ -20,7 +20,7 @@ Install pandas
 `pip install pandas`
 
 install matplotlib
-`pip install matplotlib.pyplot`
+`pip install matplotlib`
 
 Install scipy
 `pip install scipy`
@@ -42,17 +42,23 @@ No further configuration is required.
 Project Structure
 ------------
 
-    ├── README.md                 <- The top-level README for developers using this project.
+    ├── README.md                   <- The top-level README for developers using this project.
     │
     ├── helpers
-    │   ├── date_time_handler     <- Set of static methods that aid some time manipulations
-    │   └── progress_handler      <- Set of static methods that aid some progress manipulations
+    │   ├── date_time_handler       <- Set of static methods that aid some time manipulations.
+    │   └── progress_handler        <- Set of static methods that aid some progress manipulations.
     │
+    ├── images                      <- Storing readme image files.
+    │   
     ├── providers
-    │   ├── plots_provider        <- Static methods which perform the plotting functionality
-    │   └── forum_scraper         <- Static methods which perform the scraping functionality
+    │   ├── plots_provider          <- Static methods which perform the plotting functionality.
+    │   └── forum_scraper           <- Static methods which perform the scraping functionality.
     │
-    └── main                      <- Acts as a sandbox for methods invocation
+    ├── cached_threads.csv          <- Storing cached threads from a previous state.
+    │
+    ├── cached_threads_details.csv  <- Storing cached thread's details from a previous state.
+    │   
+    └── main                        <- Acts as a sandbox for methods invocation.
 
 Report / Findings
 ------------

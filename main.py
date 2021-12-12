@@ -26,7 +26,7 @@ print('--------------------------------------------------')
 # PlotsProvider.plot_view_with_replies_relation(fast_fetch=True)
 # PlotsProvider.plot_top_15_thread_creators(fast_fetch=True)
 # PlotsProvider.plot_locked_sticky_threads(fast_fetch=True)
-# PlotsProvider.plot_top_15_oldest_threads(fast_fetch=True)
+PlotsProvider.plot_top_15_oldest_threads(fast_fetch=True)
 #
 # PlotsProvider.plot_top_15_repliers(fast_fetch=True, fast_fetch_threads=True)
 # PlotsProvider.plot_top_15_messages(fast_fetch=True, fast_fetch_threads=True)
